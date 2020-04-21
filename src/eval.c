@@ -220,11 +220,16 @@ static eval_t do_pawns(const Position *pos, int us, bitboard_t attacks[NB_COLOR]
     eval_t result = {0, 0};
 
     // Pawn shield
-    const int kf = file_of(ourKing), dte = kf > FILE_D ? FILE_H - kf : kf;
+    const int kingFile = file_of(ourKing);
+    const int dte = kingFile > FILE_D ? FILE_H - kingFile : kingFile;
     bitboard_t b = ourPawns & (PawnPath[us][ourKing] | PawnSpan[us][ourKing]);
 
-    while (b)
-        result.op += Shield[dte][relative_rank_of(us, bb_pop_lsb(&b)) - RANK_2];
+    for (int file = max(kingFile - 1, FILE_A); file <= min(kingFile + 1, FILE_H); file++) {
+        const bitboard_t pf = ourPawns & File[file];
+
+        if (pf)
+            result.op += Shield[dte][relative_rank_of(us, us ? bb_msb(pf) : bb_lsb(pf)) - RANK_2];
+    }
 
     // Pawn structure
     b = ourPawns;
